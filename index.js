@@ -130,9 +130,9 @@ const root = {
                     e.age,
                     e.tenure
                 FROM employees e
-                JOIN addresses a ON a.employee_id = e.id
+                LEFT JOIN addresses a ON a.employee_id = e.id
                     AND a.is_primary = 1
-                JOIN contacts c ON c.employee_id = e.id
+                LEFT JOIN contacts c ON c.employee_id = e.id
                     AND c.is_primary = 1;
             `;
             db.query(sql, (err, results) => {
