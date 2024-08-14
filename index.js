@@ -16,9 +16,9 @@ const schema = buildSchema(`
         id: ID!
         fname: String!
         lname: String!
-        street: String!
-        city: String!
-        contact: String!
+        street: String
+        city: String
+        contact: String
         age: Int!
         tenure: String!
     }
