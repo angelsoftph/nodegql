@@ -84,7 +84,7 @@ const schema = buildSchema(`
             datehired: String!,
             age: Int!,
             tenure: String!
-        ): EmployeeView
+        ): EmployeeUpdate
         updateEmployee(
             id: ID!,
             fname: String!,
@@ -214,7 +214,7 @@ const root = {
                     age,
                     tenure
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [name, age, tenure],
+                [fname, lname, mname, bdate, gender, cstatus, position, datehired, age, tenure],
                 (err, result) => {
                     if (err) {
                         reject(err);
