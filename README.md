@@ -16,7 +16,7 @@ Retrieve all employees:
 }`
 
 Retrieve a specific employee:
-```{
+`{
   employee(id: 1) {
     fname
     lname
@@ -31,10 +31,10 @@ Retrieve a specific employee:
     age
     tenure
   }
-}```
+}`
 
 Retrieve addresses of an employee:
-```{
+`{
 	addresses(employee_id: 1) {
   	id
     employee_id
@@ -42,10 +42,10 @@ Retrieve addresses of an employee:
   	city
     is_primary
   }
-}```
+}`
 
 Create a new employee:
-```mutation {
+`mutation {
   createEmployee(
     name: "Harry Potter",
     age: 40,
@@ -55,9 +55,9 @@ Create a new employee:
     age
     tenure
   }
-}```
+}`
 
 Delete an employee:
-```mutation {
+`mutation {
   deleteEmployee(id: 5)
-}```
+}`
