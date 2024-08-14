@@ -3,7 +3,7 @@ Just run `npm install` and then `node index`. This will launch a GraphQL server 
 Here are some test queries that you can try:
 
 Retrieve all employees:
-`{
+``{
   employees {
     id
     name
@@ -13,10 +13,10 @@ Retrieve all employees:
     age
     tenure
   }
-}`
+}``
 
 Retrieve a specific employee:
-`{
+``{
   employee(id: 1) {
     fname
     lname
@@ -31,10 +31,10 @@ Retrieve a specific employee:
     age
     tenure
   }
-}`
+}``
 
 Retrieve addresses of an employee:
-`{
+``{
 	addresses(employee_id: 1) {
   	id
     employee_id
@@ -42,22 +42,36 @@ Retrieve addresses of an employee:
   	city
     is_primary
   }
-}`
+}``
 
 Create a new employee:
-`mutation {
+``mutation {
   createEmployee(
-    name: "Harry Potter",
-    age: 40,
-    tenure: "3y 6m"
+    fname: "Maria",
+    lname: "Palad",
+    mname: "Kapos",
+    bdate: "2006-06-09"
+    gender: "F",
+    cstatus: "S",
+    position: "Customer Service",
+    datehired: "2024-06-01",
+    age: 18,
+    tenure: "6y 9m"
   ) {
-    name
+    fname
+    lname
+    fname
+    bdate
+    gender
+    cstatus
+    position
+    datehired
     age
     tenure
   }
-}`
+}``
 
 Delete an employee:
-`mutation {
+``mutation {
   deleteEmployee(id: 5)
-}`
+}``
