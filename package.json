@@ -1,0 +1,19 @@
+{
+  "name": "nodegql",
+  "version": "1.0.0",
+  "description": "NodeJs GraphQL server for my Svelte mini project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "FredR",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server": "^3.13.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-graphql": "^0.12.0",
+    "graphql": "^15.9.0",
+    "mysql2": "^3.11.0"
+  }
+}
