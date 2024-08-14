@@ -1,4 +1,4 @@
-Just run `npm install` and then `npm run dev`. This will launch a GraphQL server at http://localhost:9000/graphql
+Just run `npm install` and then `node index`. This will launch a GraphQL server at http://localhost:9000/graphql
 
 Here are some test queries that you can try:
 
