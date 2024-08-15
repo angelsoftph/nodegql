@@ -2,8 +2,9 @@ Just run `npm install` and then `node index`. This will launch a GraphQL server 
 
 Here are some test queries that you can try:
 
+```
 Retrieve all employees:
-```{
+{
   employees {
     id
     name
@@ -13,10 +14,10 @@ Retrieve all employees:
     age
     tenure
   }
-}```
+}
 
 Retrieve a specific employee:
-```{
+{
   employee(id: 1) {
     fname
     lname
@@ -31,10 +32,10 @@ Retrieve a specific employee:
     age
     tenure
   }
-}```
+}
 
 Retrieve addresses of an employee:
-```{
+{
 	addresses(employee_id: 1) {
   	id
     employee_id
@@ -42,10 +43,10 @@ Retrieve addresses of an employee:
   	city
     is_primary
   }
-}```
+}
 
 Create a new employee:
-```mutation {
+mutation {
   createEmployee(
     fname: "Maria",
     lname: "Palad",
@@ -69,10 +70,10 @@ Create a new employee:
     age
     tenure
   }
-}```
+}
 
 Update an employee:
-```mutation {
+mutation {
   updateEmployee(
     id: 15,
     fname: "Jenny"
@@ -98,9 +99,10 @@ Update an employee:
     age
     tenure
   }
-}```
+}
 
 Delete an employee:
-```mutation {
+mutation {
   deleteEmployee(id: 5)
-}```
+}
+```
