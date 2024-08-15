@@ -48,7 +48,6 @@ const schema = buildSchema(`
         cstatus: String!
         position: String!
         datehired: String!
-        age: Int!
         tenure: String!
     }
 
@@ -82,7 +81,6 @@ const schema = buildSchema(`
             cstatus: String!,
             position: String!,
             datehired: String!,
-            age: Int!,
             tenure: String!
         ): EmployeeUpdate
         updateEmployee(
@@ -95,7 +93,6 @@ const schema = buildSchema(`
             cstatus: String!,
             position: String!,
             datehired: String!,
-            age: Int!,
             tenure: String!
         ): EmployeeUpdate
         deleteEmployee(id: ID!): String
@@ -109,6 +106,23 @@ const schema = buildSchema(`
         deleteContact(id: ID!): Contact
     }
 `);
+
+function getAge(bdate) {
+    if (!bdate) {
+        return 0;
+    }
+
+    const birthDate = new Date(bdate);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    return age;
+}
 
 const root = {
     employees: () => {
@@ -127,7 +141,6 @@ const root = {
                     a.street,
                     a.city,
                     c.contact,
-                    e.age,
                     e.tenure
                 FROM employees e
                 LEFT JOIN addresses a ON a.employee_id = e.id
@@ -139,7 +152,14 @@ const root = {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(results);
+                    const employees = results.map(row => {
+                        return {
+                            ...row,
+                            age: getAge(row.bdate)
+                        };
+                    });
+
+                    resolve(employees);
                 }
             });
         });
@@ -199,7 +219,7 @@ const root = {
             });
         });
     },
-    createEmployee: ({ fname, lname, mname, bdate, gender, cstatus, position, datehired, age, tenure }) => {
+    createEmployee: ({ fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure }) => {
         return new Promise((resolve, reject) => {
             db.query(
                 `INSERT INTO employees (
@@ -211,10 +231,9 @@ const root = {
                     cstatus,
                     position,
                     datehired,
-                    age,
                     tenure
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [fname, lname, mname, bdate, gender, cstatus, position, datehired, age, tenure],
+                [fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure],
                 (err, result) => {
                     if (err) {
                         reject(err);
@@ -229,7 +248,6 @@ const root = {
                             cstatus,
                             position,
                             datehired,
-                            age,
                             tenure
                         });
                     }
@@ -237,7 +255,7 @@ const root = {
             );
         });
     },
-    updateEmployee: ({ id, fname, lname, mname, bdate, gender, cstatus, position, datehired, age, tenure }) => {
+    updateEmployee: ({ id, fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure }) => {
         return new Promise((resolve, reject) => {
             const fields = [];
             const values = [];
@@ -273,10 +291,6 @@ const root = {
             if (datehired !== undefined) {
                 fields.push('datehired = ?');
                 values.push(datehired);
-            }
-            if (age !== undefined) {
-                fields.push('age = ?');
-                values.push(age);
             }
             if (tenure !== undefined) {
                 fields.push('tenure = ?');
