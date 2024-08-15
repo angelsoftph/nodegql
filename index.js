@@ -25,7 +25,7 @@ const schema = buildSchema(`
 
     type Address {
         id: ID!
-        employee_id: ID!
+        employee_id: Int!
         street: String!
         city: String!
         is_primary: Int!
@@ -33,7 +33,7 @@ const schema = buildSchema(`
 
     type Contact {
         id: ID!
-        employee_id: ID!
+        employee_id: Int!
         contact: String!
         is_primary: Int!
     }
@@ -97,13 +97,15 @@ const schema = buildSchema(`
         ): EmployeeUpdate
         deleteEmployee(id: ID!): String
 
-        createAddress(street: String!, city: String!, is_primary: Boolean!): Address
-        updateAddress(id: ID!, street: String!, city: String!, is_primary: Boolean!): Address
+        createAddress(employee_id: ID!, street: String!, city: String!, is_primary: Int!): Address
+        updateAddress(id: ID!, street: String!, city: String!, is_primary: Int!): Address
         deleteAddress(id: ID!): Address
+        setPrimaryAddress(id: ID!, employee_id: ID!): Address
 
-        createContact(contact: String!, is_primary: Boolean!): Contact
-        updateContact(id: ID!, contact: String!, is_primary: Boolean!): Contact
+        createContact(employee_id: ID!, contact: String!, is_primary: Int!): Contact
+        updateContact(id: ID!, contact: String!, is_primary: Int!): Contact
         deleteContact(id: ID!): Contact
+        setPrimaryContact(id: ID!, employee_id: ID!): Contact
     }
 `);
 
@@ -232,7 +234,7 @@ const root = {
                     position,
                     datehired,
                     tenure
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure],
                 (err, result) => {
                     if (err) {
@@ -322,6 +324,200 @@ const root = {
                     reject(err);
                 } else {
                     resolve(`Employee with ID ${id} deleted successfully.`);
+                }
+            });
+        });
+    },
+    createAddress: ({ employee_id, street, city, is_primary }) => {
+        return new Promise((resolve, reject) => {
+            db.query(
+                `INSERT INTO addresses (
+                    employee_id,
+                    street,
+                    city,
+                    is_primary
+                ) VALUES (?, ?, ?, ?)`,
+                [employee_id, street, city, is_primary],
+                (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({
+                            id: result.insertId,
+                            employee_id,
+                            street,
+                            city,
+                            is_primary
+                        });
+                    }
+                }
+            );
+        });
+    },
+    updateAddress: ({ id, street, city, is_primary }) => {
+        return new Promise((resolve, reject) => {
+            const fields = [];
+            const values = [];
+
+            if (street !== undefined) {
+                fields.push('street = ?');
+                values.push(street);
+            }
+            if (city !== undefined) {
+                fields.push('city = ?');
+                values.push(city);
+            }
+            if (is_primary !== undefined) {
+                fields.push('is_primary = ?');
+                values.push(is_primary);
+            }
+            values.push(id);
+
+            const sql = `UPDATE addresses SET ${fields.join(', ')} WHERE id = ?`;
+
+            db.query(sql, values, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    db.query('SELECT * FROM addresses WHERE id = ?', [id], (err, results) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(results[0]);
+                        }
+                    });
+                }
+            });
+        });
+    },
+    deleteAddress: ({ id }) => {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM addresses WHERE id = ?', [id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(`Address with ID ${id} deleted successfully.`);
+                }
+            });
+        });
+    },
+    createContact: ({ employee_id, contact, is_primary }) => {
+        return new Promise((resolve, reject) => {
+            db.query(
+                `INSERT INTO contacts (
+                    employee_id,
+                    contact,
+                    is_primary
+                ) VALUES (?, ?, ?)`,
+                [employee_id, contact, is_primary],
+                (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({
+                            id: result.insertId,
+                            employee_id,
+                            contact,
+                            is_primary
+                        });
+                    }
+                }
+            );
+        });
+    },
+    updateContact: ({ id, contact, is_primary }) => {
+        return new Promise((resolve, reject) => {
+            const fields = [];
+            const values = [];
+
+            if (contact !== undefined) {
+                fields.push('street = ?');
+                values.push(street);
+            }
+            if (is_primary !== undefined) {
+                fields.push('is_primary = ?');
+                values.push(is_primary);
+            }
+            values.push(id);
+
+            const sql = `UPDATE contacts SET ${fields.join(', ')} WHERE id = ?`;
+
+            db.query(sql, values, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    db.query('SELECT * FROM contacts WHERE id = ?', [id], (err, results) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(results[0]);
+                        }
+                    });
+                }
+            });
+        });
+    },
+    deleteContact: ({ id }) => {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM contacts WHERE id = ?', [id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(`Contact with ID ${id} deleted successfully.`);
+                }
+            });
+        });
+    },
+    setPrimaryAddress: ({ id, employee_id }) => {
+        return new Promise((resolve, reject) => {
+            const sql0 = `UPDATE addresses SET is_primary = 0 WHERE employee_id = ?`;
+            const sql1 = `UPDATE addresses SET is_primary = 1 WHERE id = ?`;
+
+            db.query(sql0, [employee_id], (err, result) => {
+                if (err) {
+                    reject(err);
+                }
+            });
+
+            db.query(sql1, [id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    db.query('SELECT * FROM addresses WHERE id = ?', [id], (err, results) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(results[0]);
+                        }
+                    });
+                }
+            });
+        });
+    },
+    setPrimaryContact: ({ id, employee_id }) => {
+        console.log('id', id);
+        console.log('emp', employee_id);
+        return new Promise((resolve, reject) => {
+            const sql0 = `UPDATE contacts SET is_primary = 0 WHERE employee_id = ?`;
+            const sql1 = `UPDATE contacts SET is_primary = 1 WHERE id = ?`;
+
+            db.query(sql0, [employee_id], (err, result) => {
+                if (err) {
+                    reject(err);
+                }
+            });
+
+            db.query(sql1, [id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    db.query('SELECT * FROM contacts WHERE id = ?', [id], (err, results) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(results[0]);
+                        }
+                    });
                 }
             });
         });
