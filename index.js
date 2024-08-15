@@ -396,7 +396,7 @@ const root = {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(`Address with ID ${id} deleted successfully.`);
+                    resolve(null);
                 }
             });
         });
@@ -463,7 +463,8 @@ const root = {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(`Contact with ID ${id} deleted successfully.`);
+                    resolve(null);
+
                 }
             });
         });
@@ -495,8 +496,6 @@ const root = {
         });
     },
     setPrimaryContact: ({ id, employee_id }) => {
-        console.log('id', id);
-        console.log('emp', employee_id);
         return new Promise((resolve, reject) => {
             const sql0 = `UPDATE contacts SET is_primary = 0 WHERE employee_id = ?`;
             const sql1 = `UPDATE contacts SET is_primary = 1 WHERE id = ?`;
