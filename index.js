@@ -3,6 +3,10 @@ const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mysql = require('mysql2');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -48,7 +52,6 @@ const schema = buildSchema(`
         cstatus: String!
         position: String!
         datehired: String!
-        tenure: String!
     }
 
     input AddressInput {
@@ -81,7 +84,6 @@ const schema = buildSchema(`
             cstatus: String!,
             position: String!,
             datehired: String!,
-            tenure: String!
         ): EmployeeUpdate
         updateEmployee(
             id: ID!,
@@ -93,7 +95,6 @@ const schema = buildSchema(`
             cstatus: String!,
             position: String!,
             datehired: String!,
-            tenure: String!
         ): EmployeeUpdate
         deleteEmployee(id: ID!): String
 
@@ -126,6 +127,25 @@ function getAge(bdate) {
     return age;
 }
 
+function getTenure(startDate) {
+    const start = new Date(startDate);
+    const end = new Date();
+  
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+  
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (!isNaN(years) && !isNaN(months)) {
+        return `${years}y ${months}m`;
+    }
+
+    return 0;
+}
+
 const root = {
     employees: () => {
         return new Promise((resolve, reject) => {
@@ -142,8 +162,7 @@ const root = {
                     e.datehired,
                     a.street,
                     a.city,
-                    c.contact,
-                    e.tenure
+                    c.contact
                 FROM employees e
                 LEFT JOIN addresses a ON a.employee_id = e.id
                     AND a.is_primary = 1
@@ -157,7 +176,8 @@ const root = {
                     const employees = results.map(row => {
                         return {
                             ...row,
-                            age: getAge(row.bdate)
+                            age: getAge(row.bdate),
+                            tenure: getTenure(row.datehired)
                         };
                     });
 
@@ -221,7 +241,7 @@ const root = {
             });
         });
     },
-    createEmployee: ({ fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure }) => {
+    createEmployee: ({ fname, lname, mname, bdate, gender, cstatus, position, datehired }) => {
         return new Promise((resolve, reject) => {
             db.query(
                 `INSERT INTO employees (
@@ -232,10 +252,9 @@ const root = {
                     gender,
                     cstatus,
                     position,
-                    datehired,
-                    tenure
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure],
+                    datehired
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [fname, lname, mname, bdate, gender, cstatus, position, datehired],
                 (err, result) => {
                     if (err) {
                         reject(err);
@@ -249,15 +268,14 @@ const root = {
                             gender,
                             cstatus,
                             position,
-                            datehired,
-                            tenure
+                            datehired
                         });
                     }
                 }
             );
         });
     },
-    updateEmployee: ({ id, fname, lname, mname, bdate, gender, cstatus, position, datehired, tenure }) => {
+    updateEmployee: ({ id, fname, lname, mname, bdate, gender, cstatus, position, datehired }) => {
         return new Promise((resolve, reject) => {
             const fields = [];
             const values = [];
@@ -293,10 +311,6 @@ const root = {
             if (datehired !== undefined) {
                 fields.push('datehired = ?');
                 values.push(datehired);
-            }
-            if (tenure !== undefined) {
-                fields.push('tenure = ?');
-                values.push(tenure);
             }
             values.push(id);
 
@@ -524,8 +538,84 @@ const root = {
 };
 
 const app = express();
+const { User } = require('./models');
 
 app.use(cors());
+app.use(express.json());
+
+app.post('/login', (req, res) => {
+    const { email, pword } = req.body;
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    try {
+        User.findOne({
+            where: {
+                email: email
+            },
+        })
+            .then((user) => {
+                if (user) {
+                    const hashed_pword = user.pword;
+                    bcrypt.compare(pword, hashed_pword, function(err, result) {
+                        if (result) {
+                            const token = jwt.sign(
+                                {
+                                    id: user.id,
+                                    fname: user.name,
+                                    email: user.email,
+                                    role: user.role
+                                },
+                                JWT_SECRET,
+                                { expiresIn: '8h' }
+                            );
+                            res.status(200).send({ token: token });
+                        } else {
+                            res.status(401).send({ message: 'Authentication failed' });
+                        }
+                    });
+                } else {
+                    res.status(404).send({ message: 'User not found' });
+                }
+            }).catch(err => {
+                res.status(400).send({ message: err });
+            });
+    } catch(err) {
+        res.status(400).send({ message: err });
+    }
+});
+
+app.get('/details', async (req, res) => {
+    const token = req.header('Authorization');
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    if (!token) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid token' });
+        }
+
+        req.user = user;
+        user_id = user.id;
+
+        User.findOne({
+            where: {
+                id: user_id
+            },
+        }).then(function(u) {
+            let data = {
+                id: u.id,
+                name: u.name,
+                email: u.email,
+                role: u.role
+            }
+            res.status(200).send(data);
+        });
+    });
+});
+
 app.use('/graphql', graphqlHTTP({
     schema: schema,
     rootValue: root,
