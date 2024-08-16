@@ -36,11 +36,11 @@ Retrieve a specific employee:
 
 Retrieve addresses of an employee:
 {
-	addresses(employee_id: 1) {
-  	id
+  addresses(employee_id: 1) {
+    id
     employee_id
-  	street
-  	city
+    street
+    city
     is_primary
   }
 }
@@ -55,9 +55,7 @@ mutation {
     gender: "F",
     cstatus: "S",
     position: "Customer Service",
-    datehired: "2024-06-01",
-    age: 18,
-    tenure: "6y 9m"
+    datehired: "2024-06-01"
   ) {
     fname
     lname
@@ -67,8 +65,6 @@ mutation {
     cstatus
     position
     datehired
-    age
-    tenure
   }
 }
 
@@ -84,8 +80,6 @@ mutation {
     cstatus: "D"
     position: "Lady Boss"
     datehired: "2022-01-01"
-    age: 28,
-    tenure: "6m"
   ) {
     id
     fname
@@ -96,8 +90,6 @@ mutation {
     cstatus
     position
     datehired
-    age
-    tenure
   }
 }
 
