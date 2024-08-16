@@ -54,15 +54,8 @@ const schema = buildSchema(`
         datehired: String!
     }
 
-    input AddressInput {
-        street: String!
-        city: String!
-        is_primary: Boolean!
-    }
-
-    input ContactInput {
-        contact: String!
-        is_primary: Boolean!
+    type DeleteEmployeeResponse {
+        success: Boolean!
     }
 
     type Query {
@@ -101,11 +94,13 @@ const schema = buildSchema(`
         createAddress(employee_id: ID!, street: String!, city: String!, is_primary: Int!): Address
         updateAddress(id: ID!, street: String!, city: String!, is_primary: Int!): Address
         deleteAddress(id: ID!): Address
+        deleteEmployeeAddresses(employee_id: ID!): DeleteEmployeeResponse!
         setPrimaryAddress(id: ID!, employee_id: ID!): Address
 
         createContact(employee_id: ID!, contact: String!, is_primary: Int!): Contact
         updateContact(id: ID!, contact: String!, is_primary: Int!): Contact
         deleteContact(id: ID!): Contact
+        deleteEmployeeContacts(employee_id: ID!): DeleteEmployeeResponse!
         setPrimaryContact(id: ID!, employee_id: ID!): Contact
     }
 `);
@@ -342,6 +337,30 @@ const root = {
             });
         });
     },
+    deleteEmployeeAddresses: ({ employee_id }) => {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM addresses WHERE employee_id = ?', [employee_id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    let result = { success: true }
+                    resolve(result);
+                }
+            });
+        });
+    },
+    deleteEmployeeContacts: ({ employee_id }) => {
+        return new Promise((resolve, reject) => {
+            db.query('DELETE FROM contacts WHERE employee_id = ?', [employee_id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    let result = { success: true }
+                    resolve(result);
+                }
+            });
+        });
+    },
     createAddress: ({ employee_id, street, city, is_primary }) => {
         return new Promise((resolve, reject) => {
             db.query(
@@ -478,7 +497,6 @@ const root = {
                     reject(err);
                 } else {
                     resolve(null);
-
                 }
             });
         });
