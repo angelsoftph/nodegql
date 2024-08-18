@@ -47,7 +47,7 @@ const schema = buildSchema(`
         id: ID!
         fname: String!
         lname: String!
-        mname: String!
+        mname: String
         bdate: String!
         gender: String!
         cstatus: String!
@@ -72,7 +72,7 @@ const schema = buildSchema(`
         createEmployee(
             fname: String!,
             lname: String!,
-            mname: String!,
+            mname: String,
             bdate: String!,
             gender: String!,
             cstatus: String!,
@@ -83,7 +83,7 @@ const schema = buildSchema(`
             id: ID!,
             fname: String!,
             lname: String!,
-            mname: String!,
+            mname: String,
             bdate: String!,
             gender: String!,
             cstatus: String!,
